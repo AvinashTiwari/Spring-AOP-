@@ -1,5 +1,7 @@
 package learn.avinash.springframework.services.jpaservices;
 
+import learn.avinash.springframework.command.CustomerForm;
+import learn.avinash.springframework.converters.CustomerFormToCustomer;
 import learn.avinash.springframework.domain.Customer;
 import learn.avinash.springframework.services.CustomerService;
 import learn.avinash.springframework.services.security.EncryptionService;
@@ -19,10 +21,16 @@ import java.util.List;
 public class CustomerServiceJPADaoImpl extends AbstractJpaDaoService implements CustomerService {
 
     private EncryptionService encryptionService;
+    private CustomerFormToCustomer customerFormToCustomer;
 
     @Autowired
     public void setEncryptionService(EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
+    }
+
+    @Autowired
+    public void setCustomerFormToCustomer(CustomerFormToCustomer customerFormToCustomer) {
+        this.customerFormToCustomer = customerFormToCustomer;
     }
 
     @Override
@@ -57,6 +65,21 @@ public class CustomerServiceJPADaoImpl extends AbstractJpaDaoService implements 
     }
 
     @Override
+    public Customer saveOrUpdateCustomerForm(CustomerForm customerForm) {
+        Customer newCustomer = customerFormToCustomer.convert(customerForm);
+
+        //enhance if saved
+        if(newCustomer.getUser().getId() != null){
+            Customer existingCustomer = getById(newCustomer.getUser().getId());
+
+            //set enabled flag from db
+            newCustomer.getUser().setEnabled(existingCustomer.getUser().getEnabled());
+        }
+
+        return saveOrUpdate(newCustomer);
+    }
+
+    @Override
     public void delete(Integer id) {
         EntityManager em = emf.createEntityManager();
 
@@ -64,4 +87,5 @@ public class CustomerServiceJPADaoImpl extends AbstractJpaDaoService implements 
         em.remove(em.find(Customer.class, id));
         em.getTransaction().commit();
     }
+
 }

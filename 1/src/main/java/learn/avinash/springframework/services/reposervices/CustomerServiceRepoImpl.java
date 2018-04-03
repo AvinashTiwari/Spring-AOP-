@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import learn.avinash.springframework.command.CustomerForm;
+import learn.avinash.springframework.converters.CustomerFormToCustomer;
 import learn.avinash.springframework.domain.Customer;
 import learn.avinash.springframework.repositories.CustomerRepository;
 import learn.avinash.springframework.services.CustomerService;
@@ -18,11 +20,17 @@ import java.util.List;
 @Profile("springdatajpa")
 public class CustomerServiceRepoImpl implements CustomerService {
 
-    private CustomerRepository customerRepository;
+	private CustomerRepository customerRepository;
+    private CustomerFormToCustomer customerFormToCustomer;
 
     @Autowired
     public void setCustomerRepository(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
+    }
+
+    @Autowired
+    public void setCustomerFormToCustomer(CustomerFormToCustomer customerFormToCustomer) {
+        this.customerFormToCustomer = customerFormToCustomer;
     }
 
     @Override
@@ -40,6 +48,19 @@ public class CustomerServiceRepoImpl implements CustomerService {
     @Override
     public Customer saveOrUpdate(Customer domainObject) {
         return customerRepository.save(domainObject);
+    }
+
+    @Override
+    public Customer saveOrUpdateCustomerForm(CustomerForm customerForm) {
+        Customer newCustomer = customerFormToCustomer.convert(customerForm);
+
+        if(newCustomer.getUser().getId() != null){
+            Customer existingCustomer = getById(newCustomer.getId());
+
+            newCustomer.getUser().setEnabled(existingCustomer.getUser().getEnabled());
+        }
+
+        return saveOrUpdate(newCustomer);
     }
 
     @Override
