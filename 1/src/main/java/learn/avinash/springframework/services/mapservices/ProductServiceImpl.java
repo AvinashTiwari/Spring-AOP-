@@ -1,9 +1,12 @@
 package learn.avinash.springframework.services.mapservices;
 
+import learn.avinash.springframework.command.ProductForm;
+import learn.avinash.springframework.converters.ProductFormToProduct;
 import learn.avinash.springframework.domain.DomainObject;
 import learn.avinash.springframework.domain.Product;
 import learn.avinash.springframework.services.ProductService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,14 @@ import java.util.List;
 @Profile("map")
 public class ProductServiceImpl extends AbstractMapService implements ProductService {
 
+	
+	private ProductFormToProduct productFormToProduct;
+
+    @Autowired
+    public void setProductFormToProduct(ProductFormToProduct productFormToProduct) {
+        this.productFormToProduct = productFormToProduct;
+    }
+	
     @Override
     public List<DomainObject> listAll() {
         return super.listAll();
@@ -34,6 +45,11 @@ public class ProductServiceImpl extends AbstractMapService implements ProductSer
     @Override
     public void delete(Integer id) {
         super.delete(id);
+    }
+    
+    @Override
+    public Product saveOrUpdateProductForm(ProductForm productForm) {
+        return saveOrUpdate(productFormToProduct.convert(productForm));
     }
 
    }

@@ -1,8 +1,11 @@
 package learn.avinash.springframework.services.jpaservices;
 
+import learn.avinash.springframework.command.ProductForm;
+import learn.avinash.springframework.converters.ProductFormToProduct;
 import learn.avinash.springframework.domain.Product;
 import learn.avinash.springframework.services.ProductService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,14 @@ import java.util.List;
 @Profile("jpadao-dotnotuse")
 public class ProductServiceJpaDaoImpl extends AbstractJpaDaoService implements ProductService {
 
+    private ProductFormToProduct productFormToProduct;
+
+    @Autowired
+    public void setProductFormToProduct(ProductFormToProduct productFormToProduct) {
+        this.productFormToProduct = productFormToProduct;
+    }
+
+	
     @Override
     public List<Product> listAll() {
         EntityManager em = emf.createEntityManager();
@@ -49,4 +60,10 @@ public class ProductServiceJpaDaoImpl extends AbstractJpaDaoService implements P
         em.remove(em.find(Product.class, id));
         em.getTransaction().commit();
     }
+    
+    @Override
+    public Product saveOrUpdateProductForm(ProductForm productForm) {
+        return saveOrUpdate(productFormToProduct.convert(productForm));
+    }
+
 }
